@@ -65,7 +65,7 @@ H = (m_b*l_b) / (I_b+m_b*(l_b^2));
 I = (m_b*l_b*g) / (I_b+m_b*(l_b^2));
 J = (K_t) / ((I_b+m_b*l_b^2)*R_m);
 
-% syms theta theta_dot theta_ddot x x_dot v
+syms theta theta_dot theta_ddot x x_dot v
 % syms använder en koppling till maple.
 
 M = [0 1 0 0;
