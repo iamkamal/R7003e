@@ -82,11 +82,14 @@ M = [0 1 0 0;
 N = [ 0; (E-C*J)/(1-C*H); 0; -(J+H*E)/(1-C*H)]
 O = [0 0 1 0]   % önskad output är vinkeln
 P = [0]     % Önskat output beror ej på input
-%u = [v]
+
+%u = [v]§
+
 
 %==== State space form to transfer function form
-% a = transfer function numerator
-% b = Transfer function denumerator
-[a,b] = ss2tf(M,N,O,P)
+a=ss(M,N,O,P)
+% b = transfer function numerator
+% c = Transfer function denumerator
+[b,c] = ss2tf(M,N,O,P)
 % x_ddot= -(b_f*x_dot - b_f*l_w*theta_dot + (K_e*K_t*x_dot)/R_m + l_b*l_w^2*m_b*theta_ddot*cos(theta)...
 %     - (K_e*K_t*l_w*theta_dot)/R_m - l_b*l_w^2*m_b*theta_dot^2*sin(theta))/((m_b + m_w)*l_w^2 + I_w)
