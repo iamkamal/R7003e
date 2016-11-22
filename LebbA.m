@@ -39,4 +39,3 @@ test = c4*c6*c9*c10/(1-c6*c10*c4*c4);
 %test = double(eval(test))
 
 
-
