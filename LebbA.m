@@ -29,11 +29,11 @@ c2 = (K_t*K_e+R_m*b_f)/(R_m*l_w^2)
 c3 = (K_t*K_e+R_m*b_f)/(R_m*l_w)
 c4 = m_b*l_b
 c5 = c4
-c6 = 1/(m_w+m_b+(I_b/(l_w^2)))
+c6 = (m_w+m_b+(I_b/(l_w^2)))
 c7 = (K_t/R_m)
 c8 = ((K_t*K_e)+(R_m*b_f))/R_m
 c9 = c4*g
-c10 = 1/(I_b+m_b*l_b^2)
+c10 = (I_b+m_b*l_b^2)
 
 test = c4*c6*c9*c10/(1-c6*c10*c4*c4);
 %test = double(eval(test))

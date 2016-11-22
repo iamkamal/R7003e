@@ -15,7 +15,6 @@ syms theta theta_dot theta_ddot x x_dot x_ddot v g b_f m_b l_b I_b m_w l_w I_w R
 %  x_ddot= -(b_f*x_dot - b_f*l_w*theta_dot + (K_e*K_t*x_dot)/R_m + l_b*l_w^2*m_b*theta_ddot*cos(theta)...
 %     - (K_e*K_t*l_w*theta_dot)/R_m - l_b*l_w^2*m_b*theta_dot^2*sin(theta))/((m_b + m_w)*l_w^2 + I_w)
 
-
 T_m = K_t*(V_m-K_e*(+(x_dot/l_w)-theta_dot))/R_m
 
 T_f = b_f*((x_dot/l_w)-theta_dot)
