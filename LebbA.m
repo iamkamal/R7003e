@@ -39,3 +39,25 @@ test = c4*c6*c9*c10/(1-c6*c10*c4*c4);
 %test = double(eval(test))
 
 
+a_11 = 0
+a_12 = -c2
+a_13 = 0
+a_14 = c3
+a_21 = 0
+a_22 = c3
+a_23 = c9
+a_24 = -c8
+
+A=[a_11 a_12 a_13 a_14; a_21 a_22 a_23 a_24]
+
+gamma_11 = c6
+gamma_12 = c4
+gamma_21 = c4
+gamma_22 = c10
+GAMMA=[gamma_11 gamma_12; gamma_21 gamma_22]
+
+beta_1 = c1
+beta_2 = -c7
+B=[beta_1;beta_2]
+
+
