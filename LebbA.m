@@ -60,4 +60,22 @@ beta_1 = c1
 beta_2 = -c7
 B=[beta_1;beta_2]
 
+X = [x;x_dot;theta;theta_dot]
+
+A_new = inv(GAMMA)*A
+B_new = inv(GAMMA)*B
+
+F=[0 1 0 0;
+    A_new(1,:);
+    0 0 0 1;
+    A_new(2,:)];
+G=[0;
+    B_new(1);
+    0;
+    B_new(2)];
+    
+H=[0 0 1 0]
+
+I=[0]
+[num, den] = ss2tf(F,G,H,I)
 
