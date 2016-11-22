@@ -107,6 +107,8 @@ poles = eig(A);
 transferFunction = tf(num,den);
 %pzmap(transferFunction);
 Gs=tf(ss(A,B,C,D));
+
+s=tf('s')
  
   Gs=      ( -90.03*s)/(  s^3 + 475*s^2 - 62.02*s -1.5371e04);
   Gns=  ( 90.03*s)/(  -s^3 + 475*s^2 + 62.02*s -1.5371e04);
