@@ -105,7 +105,8 @@ poles = eig(A);
 
 % Plot poles and zeros
 transferFunction = tf(num,den);
-%pzmap(transferFunction);
+pzmap(transferFunction);
+%%
 Gs=tf(ss(A,B,C,D));
 
 s=tf('s')
