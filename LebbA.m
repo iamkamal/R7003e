@@ -144,7 +144,7 @@ kP = (p_2*p_3+p_1*p_3-p2*p3-p1*p3)/k
 kI = (p1*p2*p3-p_1*p_2*p_3)/k
 
 s = tf('s');
-%C = (kP*s + kI + kD*s^2)/s;
+C = (kP*s + kI + kD*s^2)/s;
 C = pid(kP,kI,kD)
 %Matlab method for calculating sys1 * sys2 (sys = tf system)
 W = series(C,D)
@@ -156,3 +156,42 @@ bode(G)
 
 figure()
 nyquist(G)
+
+%%
+%===========Discretization
+
+
+%Sample time calculations
+
+bf = bandwidth(G)
+TsM = 25; %Sample time scalar (rule of thumb for ZOH approximation) 
+Ts = 1/( TsM*bf)
+%%
+%============Plot figures 
+figure()
+plot(x_w.time, x_w.signals.values);
+title('x_w'); xlabel('time'); ylabel('meters')
+set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
+set(gcf, 'PaperPositionMode', 'auto');
+print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_x_w.eps');
+figure()
+
+plot(theta_b.time, theta_b.signals.values * 180 / pi);
+title('\theta_b'); xlabel('time'); ylabel('degrees')
+set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
+set(gcf, 'PaperPositionMode', 'auto');
+print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_theta_b.eps');
+
+figure()
+plot(d.time, d.signals.values);
+title('d'); xlabel('time'); ylabel('Newton')
+set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
+set(gcf, 'PaperPositionMode', 'auto');
+print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_d.eps');
+
+figure()
+plot(v_m.time, v_m.signals.values);
+title('v_m'); xlabel('time'); ylabel('Volt')
+set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
+set(gcf, 'PaperPositionMode', 'auto');
+print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_v_m.eps');
