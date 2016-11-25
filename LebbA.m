@@ -168,30 +168,46 @@ TsM = 25; %Sample time scalar (rule of thumb for ZOH approximation)
 Ts = 1/( TsM*bf)
 %%
 %============Plot figures 
+afFigurePosition = [1 1 10 6]
+
 figure()
-plot(x_w.time, x_w.signals.values);
+plot(x_w.time, x_w.data);
 title('x_w'); xlabel('time'); ylabel('meters')
+legend('Non Linear Continuous', 'Linear Continuous ', 'Non Linear Discrete', 'Linear Discrete', 'Location','northwest')
 set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
 set(gcf, 'PaperPositionMode', 'auto');
 print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_x_w.eps');
-figure()
 
-plot(theta_b.time, theta_b.signals.values * 180 / pi);
-title('\theta_b'); xlabel('time'); ylabel('degrees')
+% 
+% figure()
+% plot(theta_b.time, theta_b.data * 180 / pi);
+% title('\theta_b'); xlabel('time'); ylabel('degrees')
+% set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
+% set(gcf, 'PaperPositionMode', 'auto');
+% print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_theta_b.eps');
+
+figure()
+plot(theta_btest.time, theta_btest.signals.values * 180 / pi);
+title('\theta_b'); xlabel('time'); ylabel('degrees');
+legend('Non Linear Continuous', 'Linear Continuous ', 'Non Linear Discrete', 'Linear Discrete', 'Location','northwest');
 set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
 set(gcf, 'PaperPositionMode', 'auto');
 print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_theta_b.eps');
 
 figure()
-plot(d.time, d.signals.values);
-title('d'); xlabel('time'); ylabel('Newton')
+plot(d.time, d.data);
+title('d'); xlabel('time'); ylabel('Newton');
+legend('Non Linear Continuous', 'Linear Continuous ', 'Non Linear Discrete', 'Linear Discrete', 'Location','northwest')
 set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
 set(gcf, 'PaperPositionMode', 'auto');
+axis([0, 0.2, 0.828, 0.83]);
 print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_d.eps');
 
 figure()
-plot(v_m.time, v_m.signals.values);
+plot(v_m.time, v_m.data);
 title('v_m'); xlabel('time'); ylabel('Volt')
+legend('Non Linear Continuous', 'Linear Continuous ', 'Non Linear Discrete', 'Linear Discrete', 'Location','northwest')
 set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
 set(gcf, 'PaperPositionMode', 'auto');
+axis([-inf, inf, 0, 250]);
 print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_v_m.eps');
