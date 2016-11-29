@@ -1,6 +1,5 @@
 clear all
 close all
-clc
 
 %%
 %====State Space Form=======
@@ -92,15 +91,12 @@ F = double(eval(F));
 G = double(eval(G));
 Gd  = double(eval(Gd));
 
+save('Gmatrix.mat','G')
+save('Fmatrix.mat','F')
+
+
 %state space representation 
 [num, den] = ss2tf(F,G,H,J);
-%Not relevant for the lab.
-%[numd, dend] = ss2tf(F,Gd,Hd,Jd,2);
-
-%Lab B uppgift
-%Observability and controlability with ranks
-% Rank_ctrb = rank(ctrb(F,G))
-% Rank_obsv = rank(obsv(F,H))
 
 %%
 D_bad = tf(num,den)
@@ -130,15 +126,15 @@ bode(D)
 %Nyquist plot
 figure()
 nyquist(D)
-
+%%
 %Pole allocation method, may be in need of some tuning?
 k=num(3)
 p1=poles_ol(2)
 p2=poles_ol(3)
 p3=poles_ol(4)
 p_1=p1
-p_2=p2
-p_3=-p3
+p_2=p2 
+p_3=-10
 kD = (p3-p_3)/k
 kP = (p_2*p_3+p_1*p_3-p2*p3-p1*p3)/k
 kI = (p1*p2*p3-p_1*p_2*p_3)/k
@@ -147,26 +143,53 @@ s = tf('s');
 C = (kP*s + kI + kD*s^2)/s;
 C = pid(kP,kI,kD)
 %Matlab method for calculating sys1 * sys2 (sys = tf system)
-W = series(C,D)
+W = series(C,D);
 
-G = W/(1+W)
+Gsys = W/(1+W);
+pc = [0;p_1; p_2; p_3]
 
+K = acker(F,G,pc)
+
+save('pc.mat','pc')
 figure()
-bode(G)
+subplot(2,2,1)
+bode(Gsys)
 
-figure()
-nyquist(G)
 
+subplot(2,2,2)
+nyquist(Gsys)
+
+
+subplot(2,2,3)
+margin(Gsys)
+
+
+subplot(2,2,4)
+impulse(Gsys)
 %%
 %===========Discretization
 
 
 %Sample time calculations
 
-bf = bandwidth(G)
+bf = bandwidth(Gsys)
 TsM = 25; %Sample time scalar (rule of thumb for ZOH approximation) 
 Ts = 1/( TsM*bf)
+
 %%
+%Dominant second order pole placement design
+Mp = 0.15;          %overshoot in %
+zeta = 0.5;         %damping coefficient
+ts = 1;             %settling time
+Sigma = 4.6/ts
+Mpcalc = exp(-pi*zeta/sqrt(1-zeta^2))       %overshoot from damping coefficient 
+
+co1 = 2*zeta*Sigma;             %coefficients s^1
+co2 = Sigma^2;                  %coefficient s^0
+syms a
+solve(a^2 + co1*a + co2,'a')        %second order dominant poles
+%%
+%{
 %============Plot figures 
 afFigurePosition = [1 1 10 6]
 
@@ -211,3 +234,5 @@ set(gcf, 'Units', 'centimeters'); set(gcf,'Position',afFigurePosition);
 set(gcf, 'PaperPositionMode', 'auto');
 axis([-inf, inf, 0, 250]);
 print('-depsc2', '-r300', 'LabA_LinearizedBot_Simulink_v_m.eps');
+
+%}
