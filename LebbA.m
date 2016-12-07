@@ -41,14 +41,14 @@ beta_21 = -c7;
 beta_22 = l_b;
 B=[beta_11;beta_21];
 %new input matrix with d
-Bd = [beta_11 beta_12;beta_21 beta_22]
+Bd = [beta_11 beta_12;beta_21 beta_22];
 
 X = [x;x_dot;theta;theta_dot];
 
 A_new = inv(GAMMA)*A;
 B_new = inv(GAMMA)*B;
 %input matrix with d (aka poke disturbance) as an additional system input
-Bd_new = inv(GAMMA)*Bd
+Bd_new = inv(GAMMA)*Bd;
 
 F=[0 1 0 0;
     A_new(1,:);
@@ -99,13 +99,14 @@ save('Fmatrix.mat','F')
 [num, den] = ss2tf(F,G,H,J);
 
 %%
-D_bad = tf(num,den)
+D_bad = tf(num,den);
 %Checks num & den for strange values and eliminates them. 
 %Compare D with D_bad.
-D = minreal(D_bad)
+D = minreal(D_bad);
 
 %============Root locus plot
 figure()
+subplot(2,2,1)
 rlocus(D)
 
 %============ Poles and zeros
@@ -116,39 +117,43 @@ poles_ol = eig(F)
 % zeros_ol = det(zeros_ol);
 
 %pole zero map
-figure()
+
+%figure()
+subplot(2,2,2)
 pzmap(D)
 
 %Bode plot
-figure()
+%figure()
+subplot(2,2,3)
 bode(D)
 
 %Nyquist plot
-figure()
+%figure()
+subplot(2,2,4)
 nyquist(D)
 %%
 %Pole allocation method, may be in need of some tuning?
-k=num(3)
-p1=poles_ol(2)
-p2=poles_ol(3)
-p3=poles_ol(4)
+k=num(3);
+p1=poles_ol(2);
+p2=poles_ol(3);
+p3=poles_ol(4);
 p_1=p1
 p_2=p2 
-p_3=-10
-kD = (p3-p_3)/k
-kP = (p_2*p_3+p_1*p_3-p2*p3-p1*p3)/k
-kI = (p1*p2*p3-p_1*p_2*p_3)/k
+p_3=-p3
+kD = (p3-p_3)/k;
+kP = (p_2*p_3+p_1*p_3-p2*p3-p1*p3)/k;
+kI = (p1*p2*p3-p_1*p_2*p_3)/k;
 
 s = tf('s');
 C = (kP*s + kI + kD*s^2)/s;
-C = pid(kP,kI,kD)
+%C = pid(kP,kI,kD,tf)
 %Matlab method for calculating sys1 * sys2 (sys = tf system)
 W = series(C,D);
 
 Gsys = W/(1+W);
 pc = [0;p_1; p_2; p_3]
 
-K = acker(F,G,pc)
+K = acker(F,G,pc);
 
 save('pc.mat','pc')
 figure()
@@ -168,8 +173,6 @@ subplot(2,2,4)
 impulse(Gsys)
 %%
 %===========Discretization
-
-
 %Sample time calculations
 
 bf = bandwidth(Gsys)
@@ -179,15 +182,20 @@ Ts = 1/( TsM*bf)
 %%
 %Dominant second order pole placement design
 Mp = 0.15;          %overshoot in %
-zeta = 0.5;         %damping coefficient
 ts = 1;             %settling time
-Sigma = 4.6/ts
-Mpcalc = exp(-pi*zeta/sqrt(1-zeta^2))       %overshoot from damping coefficient 
 
+zeta = 0.5;         %damping coefficient
+             
+Sigma = 4.6/ts      %Sigma     
+Mpcalc = exp(-pi*zeta/sqrt(1-zeta^2))       %overshoot from damping coefficient 
+zcalc = sqrt(log(Mp)/(log(Mp)-pi()^2))      %Damping factor from overshoot specification
 co1 = 2*zeta*Sigma;             %coefficients s^1
 co2 = Sigma^2;                  %coefficient s^0
 syms a
 solve(a^2 + co1*a + co2,'a')        %second order dominant poles
+
+%The two dominante poles are replacing the two poles closest to the origin
+
 %%
 %{
 %============Plot figures 
