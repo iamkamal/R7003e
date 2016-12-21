@@ -27,5 +27,5 @@ save('Kd.mat','Kd','fSamplingPeriod','Ad','Bd','Cd','Dd')
 %%
 %======= Design of the discrete full order observer 
 
-dPoles = exp(
-dPoles = dPoles^speed;
+%dPoles = exp(
+%dPoles = dPoles^speed;
