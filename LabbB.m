@@ -7,7 +7,7 @@ H = [ 0 0 1 0];
 J = 0;
 
 [num,den] = ss2tf(F,G,H,J);
-
+Gold = tf(num,den);
 %%
 %Dominant second order pole placement design
 poles_ol = eig(F);
@@ -68,8 +68,7 @@ O_matrix = [H;H*F;H*F^2;H*F^3];
 %================LQR design
 
 % weight matrix (designer defined) used to penalize undesirable states.
-% Example H1=[ Need to expand this comment.
-H1 = [sqrt(25000), 0, sqrt(2500), 0];
+H1 = [10000, 0, 1000, 0];
 syms s rho
 % Identity matrix
 I = eye(size(F));
@@ -81,9 +80,13 @@ Nn = det([-s*I-F -G;H1 0]);
 Dn = det(-s*I-F);
 
 % Transferfunction for symmetric root locus plot
+num = sym2poly(N);
+den = sym2poly(D);
 numSRL = sym2poly(Nn*N);
 denSRL = sym2poly(Dn*D);
 G_SRL= tf(numSRL,denSRL);
+Gol = tf(num,den);
+%Gol = feedback(Gol,rho);
 
 num = sym2poly(N);
 
@@ -91,16 +94,16 @@ num = sym2poly(N);
 % Choose an suitable value for rho from the root locus plot.
 figure()
 rlocus(G_SRL)
-axis([-7 7 -4 4]);
+axis([-13 13 -6 6]);
 
 % Performance index matrix
 R =1;
 % State-cost matrix
-Q = transpose(H1)*H1;
-% Q = [25000 0 0 0;
-%     0 0 0 0;
-%     0 0 2500 0;
-%     0 0 0 0];
+%Q = transpose(H1)*H1;
+Q = [H1(1) 0 0 0;
+    0 0 0 0;
+    0 0 H1(3) 0;
+    0 0 0 0];
 rho = 5;
 rho = 0.01;
 Qlqr = rho*Q;
@@ -109,52 +112,40 @@ Qlqr = rho*Q;
 denPZ = sym2poly(Dn*D+rho*Nn*N);
 den = sym2poly(D+rho*N);
 Gsys = tf(numSRL,denPZ);
-
+Gol = tf(num,den);
+figure()
+nyquist(Gold)
+figure()
+nyquist(Gol)
+hold on 
+nyquist(1+Gol)
+hold off
 poles = pole(Gsys);
-if sum(poles<0) < 4
-    poles = [0;poles(poles<0)]
+if sum(poles<0) < 4;
+    poles = [0;poles(poles<0)];
 else
-    poles = [poles(poles<0)]
+    poles = [poles(poles<0)];
 end
 
 %Gain matrix 
 Kacker  = acker(F,G,poles)
 Klqr = lqr(F,G,Qlqr,R)
 save('Kacker.mat','Kacker')
-% G = G/(1+rho*G)
-%Gtest = feedback(G,1)
-% pole(Gtest)
-% % Pole Zero map for LQR system 
-% figure()
-% subplot(3,1,1)
-% pzmap(G_SRL)
-% subplot(3,1,2)
-% pzmap(Gsys)
-% subplot(3,1,3)
-% pzmap(Gtest)
-
-% rStop = 10; %%last rho
-% for r = 0:rStop;
-%     newSys = feedback(G_SRL, r);
-%     
-%     rlocus(newSys)
-%     axis([-10 10 -10 10])
-%     pause(0.01)
-%     
-% end
 
 %%
 %=============Full order Luenberger observer
 % New output matrix 
 Hnew = [1 0 0 0; 0 0 1 0];
 %Pole speed factor (2-6 times faster than the closed loop poles)
-Speed=5;
-cpEST = Speed*poles
-Qest = Qlqr*Speed
+Speed=4;
+cpEST = Speed*poles;
+
+Qest = Qlqr*Speed;
 denEST = sym2poly(Dn*D+Speed*rho*Nn*N);
 ESTsys = tf(numSRL,denEST);
-polesEST = pole(ESTsys)
 
+% Derives the EST poles and extracts the desired poles from the LHP.
+polesEST = pole(ESTsys);
 if sum(polesEST<0) < 4
     polesEST = [0;polesEST(polesEST<0)]
 else
@@ -165,7 +156,7 @@ end
 Kest  = acker(F,G,polesEST)
 Kelqr = lqr(F,G,Qest,R)
 
-%%
+% L := full order observer gain matrix 
 [Lest, precest, msgest] = place(transpose(F), transpose(Hnew), cpEST)
 %Lelqr = lqr(transpose(F),transpose(Hnew),Qest,[1 1])
 L = transpose(Lest);
@@ -176,49 +167,44 @@ syms x1 x2 theta1 theta2 x_dot X theta theta_dot u yacc_dot %X_dot yacc_dot
 X = [x1;x2;theta1;theta2]
 A = F;
 B = G;
-Cacc = [1 0 0 0] %% only 1 accurate measurement, xw
-%Cnacc = [0 1 1 1]  %%
-Cnacc = [0 0 1 0]
-%V = [0 1 0 0; 0 0 1 0; 0 0 0 1]
-V = [0 1 0 0; 0 0 1 0 ; 0 0 0 1]
-Ti = [Cacc;V]
-T = transpose(Ti)
-z = Ti*X
+Cacc = [1 0 0 0]; %% only 1 accurate measurement, xw
+%Cnacc represents the unaccurate signal
+Cnacc = [0 0 1 0];
+% V matrix basis completion 
+V = [0 1 0 0; 0 0 1 0 ; 0 0 0 1];
+Ti = [Cacc;V];
+T = transpose(Ti);
+z = Ti*X;
 
-A_tilde = Ti*A*T
-B_tilde = Ti*B
-Cacc_tilde = Cacc*T
-Cnacc_tilde = Cnacc*T
+A_tilde = Ti*A*T;
+B_tilde = Ti*B;
+Cacc_tilde = Cacc*T;
+Cnacc_tilde = Cnacc*T;
 
-z_dot = A_tilde*z+B_tilde*u
-yacc = Cacc_tilde*z
-ynacc = Cnacc_tilde*z
+z_dot = A_tilde*z+B_tilde*u;
+yacc = Cacc_tilde*z;
+ynacc = Cnacc_tilde*z;
 
-Ayy_tilde = [A_tilde(1,1)]
-Ayx_tilde = [A_tilde(1,2) A_tilde(1,3) A_tilde(1,4)]
-Axy_tilde = [A_tilde(2,1);A_tilde(3,1);A_tilde(4,1)]
-Axx_tilde = A_tilde(2:4,2:4);%[A_tilde(2,2) A_tilde(2,3) A_tilde(2,4);
-    %A_tilde(3,2) A_tilde(3,3) A_tilde(3,4);
-    %A_tilde(4,2)  A_tilde(4,3) A_tilde(4,4)]
-By_tilde = [B_tilde(1,1)]
-Bx_tilde = [B_tilde(2,1);
-    B_tilde(3,1);
-    B_tilde(4,1)]
+Ayy_tilde = [A_tilde(1,1)];
+Ayx_tilde = [A_tilde(1,2:4)];
+Axy_tilde = [A_tilde(2:4,1)];
+Axx_tilde = [A_tilde(2:4,2:4)];
+By_tilde = [B_tilde(1,1)];
+Bx_tilde = [B_tilde(2:4,1)];
 Cx_tilde = Cnacc_tilde(1,2:4);
 Cy_tilde = Cnacc_tilde(1,1);
 
 %======= SRL for estimator pole placement
-%ESTpoles =-1*abs(eig(Axx_tilde))
-Lred =transpose(place(transpose(Axx_tilde),transpose([Ayx_tilde;Cx_tilde]),polesEST(1:3)))
-%;Cx_tilde
+Speedd = 0.63
+cpdEST = Speedd * poles;
+Lred =transpose(place(transpose(Axx_tilde),transpose([Ayx_tilde;Cx_tilde]),cpdEST(2:4)));
 Lacc = [Lred(:,1)]
 Lnacc = [Lred(:,2)]
-% Lacc = [L(1:3,1)]
-% Lnacc = [L(1:3,2)]
-%%
+
+
 Xhat = X(2:4);
-Xhat_dot = Axx_tilde*Xhat + (Axy_tilde*yacc + Bx_tilde*u)...
-    + Lred*([yacc_dot - Ayy_tilde*yacc-By_tilde*u;ynacc-Cy_tilde*yacc] - [Ayx_tilde;Cx_tilde]*Xhat)
+% Xhat_dot = Axx_tilde*Xhat + (Axy_tilde*yacc + Bx_tilde*u)...
+%     + Lred*([yacc_dot - Ayy_tilde*yacc-By_tilde*u;ynacc-Cy_tilde*yacc] - [Ayx_tilde;Cx_tilde]*Xhat)
 
 M1 = (Axx_tilde - Lacc*Ayx_tilde - Lnacc*Cx_tilde)
 M2 = (Bx_tilde-Lacc*By_tilde)
@@ -234,8 +220,61 @@ kD = -0.1271;
 D=[0];
 C = [1 0 0 0; 0 0 1 0];
 save('M.mat','M1','M2','M3','M4','M5','M6','M7','kP','kI','kD','A','B','C','D','L')
+
 %%
-% syms x1 x2 theta1 theta2 rho
-% 
-% X = [x1 x2 theta1 theta2];
- % U = 
+%%==========Make it discrete%%
+fSamplingPeriod = 0.005;
+ContinuousModel = ss(A,B,C,D)
+DiscreteModel = c2d(ContinuousModel,fSamplingPeriod,'zoh')
+[Ad, Bd, Cd, Dd] = ssdata(DiscreteModel)
+Kd = dlqr(Ad,Bd,Qlqr,R)
+
+save('Kd.mat','Kd', 'fSamplingPeriod');
+dPoles = exp(polesEST*fSamplingPeriod)%fSamplingPeriod)
+dPoless = dPoles(2:4);
+[Ldest, precestd, msgestd] = place(transpose(Ad), transpose(Hnew), dPoles)
+Ld = transpose(Ldest);
+
+Cdacc = [1 0 0 0] %% only 1 accurate measurement, xw
+
+Cdnacc = [0 0 1 0]
+
+Ad_tilde = Ti*Ad*T
+Bd_tilde = Ti*Bd
+Cdacc_tilde = Cdacc*T
+Cdnacc_tilde = Cdnacc*T
+
+z_dot = Ad_tilde*z+Bd_tilde*u;
+ydacc = Cdacc_tilde*z;
+ydnacc = Cdnacc_tilde*z;
+
+Adyy_tilde = [Ad_tilde(1,1)];
+Adyx_tilde = [Ad_tilde(1,2:4)];
+Adxy_tilde = [Ad_tilde(2:4,1)];
+Adxx_tilde = [Ad_tilde(2:4,2:4)];
+Bdy_tilde = [Bd_tilde(1,1)];
+Bdx_tilde = [Bd_tilde(2:4,1)];
+
+Cdx_tilde = Cdnacc_tilde(1,2:4);
+Cdy_tilde = Cdnacc_tilde(1,1);
+
+
+Ldred =transpose(place(transpose(Adxx_tilde),transpose([Adyx_tilde;Cdx_tilde]),dPoless))
+Ldacc = [Ldred(:,1)]
+Ldnacc = [Ldred(:,2)]
+
+
+Xdhat = X(2:4);
+% Xdhat_dot = Adxx_tilde*Xdhat + (Adxy_tilde*ydacc + Bdx_tilde*u)...
+%     + Ldred*([ydacc_dot - Adyy_tilde*ydacc-Bdy_tilde*u;ydnacc-Cdy_tilde*ydacc] - [Adyx_tilde;Cdx_tilde]*Xdhat)
+
+Md1 = (Adxx_tilde - Ldacc*Adyx_tilde - Ldnacc*Cdx_tilde)
+Md2 = (Bdx_tilde-Ldacc*Bdy_tilde)
+Md3 = (Adxy_tilde - Ldacc*Adyy_tilde - Ldnacc*Cdy_tilde)
+Md4 = (Ldnacc)
+Md5 = Ldacc
+Md6 = T(1:4,1)
+Md7 = T(1:4,2:4)
+
+save('Md.mat','Md1','Md2','Md3','Md4','Md5','Md6','Md7','kP','kI','kD','Ad','Bd','Cd','Dd','Ld','fSamplingPeriod')
+ 
