@@ -77,3 +77,8 @@ Md4 = (Ldnacc)
 Md5 = Ldacc
 Md6 = T(1:4,1)
 Md7 = T(1:4,2:4)
+
+
+%%
+
+%[Nxd;Nud] = [ (Ad-eye(size(Ad))) Bd; Cd Dd ]^-1 * [0;1]
