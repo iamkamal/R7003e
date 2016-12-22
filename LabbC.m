@@ -19,9 +19,6 @@ ContinuousModel = ss(A,B,C,D)
 DiscreteModel = c2d(ContinuousModel,fSamplingPeriod,'zoh')
 [Ad, Bd, Cd, Dd] = ssdata(DiscreteModel)
 
-Id = eye(size(Ad))
-
-together = [(Ad-Id) Bd; Cd Dd]
 [Kd,S,e ]= dlqr(Ad,Bd,Qlqr,R)
 Poles = eig(Ad-Bd*Kd)
 
@@ -81,6 +78,12 @@ Md5 = Ldacc
 Md6 = T(1:4,1)
 Md7 = T(1:4,2:4)
 
+C=[1 0 0 0]
+ContinuousModel = ss(A,B,C,D)
+DiscreteModel = c2d(ContinuousModel,fSamplingPeriod,'zoh')
+[Ad, Bd, Cd, Dd] = ssdata(DiscreteModel)
+Id = eye(size(Ad)) 
+together = [(Ad-Id) Bd; Cd Dd]
 
 %%
 
