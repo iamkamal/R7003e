@@ -78,13 +78,11 @@ Md5 = Ldacc
 Md6 = T(1:4,1)
 Md7 = T(1:4,2:4)
 
-C=[1 0 0 0]
-ContinuousModel = ss(A,B,C,D)
-DiscreteModel = c2d(ContinuousModel,fSamplingPeriod,'zoh')
-[Ad, Bd, Cd, Dd] = ssdata(DiscreteModel)
-Id = eye(size(Ad)) 
-together = [(Ad-Id) Bd; Cd Dd]
 
 %%
 
+Id = eye(size(Ad)) 
+together = [(Ad-Id) Bd; Cd(1,:) 0]
+together = inv(together)
+N = together * [0;0;0;0;1]
 %[Nxd;Nud] = [ (Ad-eye(size(Ad))) Bd; Cd Dd ]^-1 * [0;1]
